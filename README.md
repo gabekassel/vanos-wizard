@@ -39,18 +39,65 @@ changes.
 
 ## Build
 
-### Option A — command line
+This is a **.NET Framework 4.8** app, so it builds with **MSBuild** (from Visual Studio / Build
+Tools). It does **not** require the `dotnet` CLI — if `dotnet` is broken on your machine
+(e.g. *"Found .NET Core SDK, did not find dotnet.dll"*), use the scripts below, which locate
+MSBuild for you and ignore `dotnet` entirely.
+
+### Option A — build script (recommended)
+Double-click **`build.bat`**, or from a terminal:
 ```
-dotnet build S54VanosTester.csproj -c Release
+powershell -ExecutionPolicy Bypass -File build.ps1
 ```
-Output: `bin\Release\net48\S54VanosTester.exe`
+`build.ps1` finds MSBuild automatically (via `vswhere`, then known install paths) and builds for
+x86. Output: `bin\Release\net48\S54VanosTester.exe`. Pass `-Configuration Debug` for a debug build.
 
 ### Option B — Visual Studio
 Open `S54VanosTester.csproj`, then:
 - **Ctrl+Shift+B** to build, or
 - **F5** to build and run.
 
-> Build on a machine that has EDIABAS installed.
+### Option C — Developer Command Prompt
+```
+msbuild S54VanosTester.csproj /p:Configuration=Release /p:Platform=x86
+```
+
+> No Visual Studio? Install the free
+> [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
+> with the **".NET desktop build tools"** workload — that provides MSBuild and the .NET Framework
+> 4.8 targeting pack.
+
+---
+
+## Package a standalone build
+
+To produce a zip you can hand to any Windows 10/11 machine and run by double-clicking:
+```
+powershell -ExecutionPolicy Bypass -File publish.ps1
+```
+`publish.ps1` builds Release, **verifies the portable EDIABAS runtime is bundled**, and writes a
+versioned zip to `dist\`, e.g. `dist\KasselPerformance-S54VanosTester-v1.0.0.0-standalone.zip`.
+
+- If the EDIABAS bundle is present, the zip is tagged **`-standalone`** and runs with no EDIABAS
+  install on the target.
+- If not, it's tagged **`-needs-ediabas`** and the script tells you which files to add (see
+  [Standalone / portable EDIABAS](#standalone--portable-ediabas)).
+
+Use `-SkipBuild` to repackage an existing build, or `-OutDir <path>` to change the output folder.
+
+---
+
+## Helper scripts
+
+| Script | What it does |
+|---|---|
+| `build.bat` / `build.ps1` | Build via MSBuild (auto-located; no `dotnet` needed). `build.bat Debug` for a debug build. |
+| `run.bat` | Build **and launch** the app. `run.bat Debug` for a debug build. |
+| `publish.ps1` | Build Release + package a standalone zip into `dist\`. |
+| `clean.bat` / `clean.ps1` | Delete `bin\`, `obj\` and `dist\`. Leaves source, the EDIABAS bundle and `appsettings.json` untouched. |
+
+> All `.bat` files just invoke the matching `.ps1` with `-ExecutionPolicy Bypass`, so you can
+> double-click them in Explorer.
 
 ---
 
@@ -147,6 +194,11 @@ back empty, verify these names against your `MSS54.PRG` in EDIABAS **Tool32**.
 | `Diagnostics/DiagnosticsSession.cs` | Owns the EDIABAS worker thread |
 | `UI/MainForm.*` | Main window |
 | `UI/Branding.cs`, `UI/BrandHeader.cs`, `UI/AboutForm.cs`, `kp.ico` | Kassel Performance branding |
+| `build.ps1` / `build.bat` | Build via MSBuild (auto-located; no `dotnet` needed) |
+| `run.bat` | Build and launch the app |
+| `publish.ps1` | Build + package a standalone zip into `dist\` |
+| `clean.ps1` / `clean.bat` | Remove `bin\`, `obj\`, `dist\` |
+| `.gitignore` | Excludes build output and the proprietary EDIABAS binaries |
 
 ---
 

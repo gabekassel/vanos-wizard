@@ -1,0 +1,23 @@
+# Build artifacts (anchored to repo root; '/bin/' avoids matching runtime/EDIABAS/BIN/
+# on case-insensitive filesystems where 'bin' would otherwise match 'BIN').
+/bin/
+/obj/
+
+# Packaging output
+/dist/
+
+# Visual Studio / user-specific
+.vs/
+*.user
+*.suo
+*.userprefs
+
+# ----------------------------------------------------------------------------
+# Bundled EDIABAS runtime: proprietary BMW/EDIABAS binaries you supply from your
+# own licensed copy. Never commit these. Keep ONLY the placeholder instructions
+# so the folder structure stays in the repo.
+# ----------------------------------------------------------------------------
+runtime/EDIABAS/BIN/*
+runtime/EDIABAS/ECU/*
+!runtime/EDIABAS/BIN/*.txt
+!runtime/EDIABAS/ECU/*.txt
