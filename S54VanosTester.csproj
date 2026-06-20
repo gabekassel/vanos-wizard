@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- EDIABAS api32.dll is a 32-bit native DLL, so the host process MUST be x86. -->
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x86</PlatformTarget>
+    <Platforms>x86</Platforms>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>S54VanosTester</AssemblyName>
+    <RootNamespace>S54VanosTester</RootNamespace>
+    <Deterministic>true</Deterministic>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Kassel Performance branding / assembly metadata. -->
+    <Company>Kassel Performance</Company>
+    <Product>Kassel Performance S54 VANOS Tester</Product>
+    <Authors>Kassel Performance</Authors>
+    <Copyright>Copyright © Kassel Performance</Copyright>
+    <AssemblyTitle>Kassel Performance S54 VANOS Tester</AssemblyTitle>
+    <Description>BMW S54 (MSS54) VANOS test and live oil/coolant temperature acquisition over EDIABAS.</Description>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ApplicationIcon>kp.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Framework references needed for WMI port discovery and the live-data chart. -->
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
+    <!-- JavaScriptSerializer for the appsettings.json loader. -->
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="kp.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
