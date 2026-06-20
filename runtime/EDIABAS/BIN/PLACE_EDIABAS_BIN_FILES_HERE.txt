@@ -1,0 +1,24 @@
+PLACE THE EDIABAS RUNTIME (BIN) FILES HERE
+==========================================
+
+Copy the contents of your licensed EDIABAS installation's BIN folder into this
+folder so the application can run portably, WITHOUT a separate EDIABAS install.
+
+Typical source on a machine that has EDIABAS:
+    C:\EDIABAS\BIN\
+
+Required (minimum):
+    api32.dll          <- the app loads this; without it nothing here activates
+    EDIABAS.INI        <- optional; the app will generate one if missing
+
+Also copy every other DLL/file that ships in EDIABAS\BIN, e.g.:
+    apiglob.dll, *.dll engine/interface libraries, OBD/EDIC interface DLLs, etc.
+    (When unsure, copy the ENTIRE BIN folder. Extra files are harmless.)
+
+The application detects this folder automatically at startup (it looks for
+api32.dll here) and points the EDIABAS environment at it. EcuPath is written to
+EDIABAS.INI at runtime as an absolute path, so the whole app folder stays
+portable across machines and drive letters.
+
+NOTE: These are proprietary BMW/EDIABAS files. You must supply them from your own
+licensed copy; they are intentionally NOT included in this repository.

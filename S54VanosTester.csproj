@@ -42,6 +42,18 @@
     <None Update="kp.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+
+    <!--
+      Bundled, portable EDIABAS runtime. Anything placed under runtime\EDIABAS (api32.dll, the
+      engine/interface DLLs and the MSS54 SGBD) is copied into the output folder as EDIABAS\... so
+      the app runs without a separate EDIABAS installation. The staging folder is named
+      runtime\EDIABAS (not EDIABAS\) to avoid colliding with the Ediabas\ source folder on
+      case-insensitive filesystems. The %(RecursiveDir) link preserves the BIN\ / ECU\ subtree.
+    -->
+    <None Include="runtime\EDIABAS\**\*">
+      <Link>EDIABAS\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

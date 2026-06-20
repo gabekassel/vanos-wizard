@@ -20,8 +20,10 @@ To **build** you need (on a Windows machine):
   (the EDIABAS runtime DLL, the counterpart of `ediabas.lib`) is 32-bit.
 
 To **run** you also need:
-- An **EDIABAS installation** on the machine. The app loads `api32.dll` at runtime; without
-  EDIABAS you will get a `DllNotFoundException` when connecting.
+- The **EDIABAS runtime** — either **bundled** with the app (recommended, see
+  [Standalone / portable EDIABAS](#standalone--portable-ediabas) below) or **installed** on the
+  machine. The app loads `api32.dll` at runtime; without it you will get a `DllNotFoundException`
+  when connecting.
 - A **K+DCAN / OBD diagnostic cable** with its driver installed.
 - The car's ignition switched to **KL15 (on)** before connecting.
 
@@ -65,6 +67,48 @@ into the output folder automatically.
 
 ---
 
+## Standalone / portable EDIABAS
+
+You can ship the EDIABAS runtime **inside the app folder** so the compiled program runs on a
+machine that has **no EDIABAS installed** — no installer, no registry keys, no PATH changes.
+
+### How it works
+On startup the app looks for an `EDIABAS\BIN\api32.dll` next to `S54VanosTester.exe`. If found, it:
+- sets the `EDIABAS` environment variable (for the process) to that bundled folder,
+- adds `EDIABAS\BIN` to the native DLL search path so `api32.dll` and its sibling DLLs load,
+- writes `EcuPath` into `EDIABAS\BIN\EDIABAS.INI` as an absolute path at runtime, so the folder
+  stays portable across machines and drive letters.
+
+If no bundle is present, it transparently falls back to an installed EDIABAS. The log panel at the
+bottom of the window states which runtime mode is active on launch.
+
+### How to bundle it
+You supply the proprietary BMW/EDIABAS files from your own **licensed** copy — they are not (and
+cannot be) included in this repository. Before building, drop them into the staging folder:
+
+```
+runtime\EDIABAS\BIN\   <- copy the entire C:\EDIABAS\BIN\ here (must contain api32.dll)
+runtime\EDIABAS\ECU\   <- copy MSS54.PRG (+ shared/group SGBD files) here
+```
+
+(Each folder has a placeholder `.txt` with exact instructions.) The build copies `runtime\EDIABAS`
+into the output as `EDIABAS\`, producing a self-contained folder:
+
+```
+bin\Release\net48\
+  S54VanosTester.exe
+  appsettings.json
+  kp.ico
+  EDIABAS\
+    BIN\  api32.dll, engine + interface DLLs, EDIABAS.INI
+    ECU\  MSS54.PRG (+ group files)
+```
+
+Zip that folder and it runs on any Windows 10/11 machine by double-clicking the `.exe`.
+
+> The staging folder is named `runtime\EDIABAS` rather than `EDIABAS` to avoid colliding with the
+> `Ediabas\` source folder on case-insensitive (Windows/macOS) filesystems.
+
 ## Configuration — `appsettings.json`
 
 The ECU, job, and result names default to the commonly referenced MSS54 identifiers but are
@@ -94,7 +138,9 @@ back empty, verify these names against your `MSS54.PRG` in EDIABAS **Tool32**.
 | `AppSettings.cs` / `appsettings.json` | ECU/job/result configuration |
 | `Ediabas/EdiabasApi.cs` | P/Invoke bindings for `api32.dll` |
 | `Ediabas/EdiabasClient.cs` | Managed wrapper around the EDIABAS API |
+| `Ediabas/EdiabasBootstrap.cs` | Activates the bundled, portable EDIABAS runtime at startup |
 | `Ediabas/EdiabasConfig.cs` | Locates/edits `EDIABAS.INI` for the chosen COM port |
+| `runtime/EDIABAS/` | Staging folder for the bundled EDIABAS runtime (you supply the files) |
 | `Ediabas/ComPortFinder.cs` | Enumerates and ranks serial ports |
 | `Vanos/VanosTester.cs` | Runs the VANOS test and builds the report |
 | `Diagnostics/TemperatureReader.cs` | Reads coolant/oil temperature samples |

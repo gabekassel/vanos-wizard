@@ -26,7 +26,28 @@ namespace S54VanosTester.UI
             _session.SampleReceived += OnSampleReceived;
 
             SetupGridColumns();
-            Load += (s, e) => PopulatePorts();
+            Load += (s, e) =>
+            {
+                LogRuntimeMode();
+                PopulatePorts();
+            };
+        }
+
+        private void LogRuntimeMode()
+        {
+            if (Ediabas.EdiabasBootstrap.IsPortable)
+            {
+                Log("Using bundled EDIABAS runtime (portable) from the application folder.");
+            }
+            else if (Ediabas.EdiabasConfig.FindEdiabasIni() != null)
+            {
+                Log("Using installed EDIABAS runtime found on this machine.");
+            }
+            else
+            {
+                Log("WARNING: No EDIABAS runtime found. Bundle an EDIABAS\\BIN\\api32.dll next to " +
+                    "this app, or install EDIABAS. See README.");
+            }
         }
 
         private void TryLoadBrandIcon()

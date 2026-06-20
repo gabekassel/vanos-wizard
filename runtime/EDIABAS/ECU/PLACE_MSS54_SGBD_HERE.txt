@@ -1,0 +1,23 @@
+PLACE THE MSS54 SGBD (ECU) FILES HERE
+=====================================
+
+Copy the S54 ECU description files from your licensed EDIABAS installation's ECU
+folder into this folder.
+
+Typical source on a machine that has EDIABAS:
+    C:\EDIABAS\ECU\
+
+Required (minimum):
+    MSS54.PRG          <- the SGBD that defines the VANOS test + temperature jobs
+                          (if your car uses MSS54HP, copy MSS54HP.PRG too and set
+                           "Ecu": "MSS54HP" in appsettings.json)
+
+Also copy any shared/group files the SGBD depends on (when unsure, copy the
+ENTIRE ECU folder -- extra .PRG/.GRP files are harmless):
+    *.PRG, *.GRP and any referenced shared description files.
+
+The application sets EcuPath in EDIABAS.INI to point here automatically at
+startup.
+
+NOTE: These are proprietary BMW/EDIABAS files. You must supply them from your own
+licensed copy; they are intentionally NOT included in this repository.

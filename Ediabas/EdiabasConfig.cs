@@ -13,12 +13,17 @@ namespace S54VanosTester.Ediabas
     public static class EdiabasConfig
     {
         /// <summary>
-        /// Attempt to find EDIABAS.INI using (in order): the EDIABAS env var, the registry,
-        /// and well-known install locations.
+        /// Attempt to find EDIABAS.INI using (in order): a bundled portable runtime next to the
+        /// executable, the EDIABAS env var, the registry, and well-known install locations.
         /// </summary>
         public static string FindEdiabasIni()
         {
             var candidates = new List<string>();
+
+            // A bundled, portable EDIABAS (shipped next to the .exe) wins over any system install.
+            string bundledIni = Path.Combine(EdiabasBootstrap.BundledBin, "EDIABAS.INI");
+            if (File.Exists(bundledIni))
+                candidates.Add(bundledIni);
 
             string env = Environment.GetEnvironmentVariable("EDIABAS");
             if (!string.IsNullOrEmpty(env))
@@ -63,14 +68,24 @@ namespace S54VanosTester.Ediabas
             if (iniPath == null)
                 return false;
 
-            string[] lines = File.ReadAllLines(iniPath);
-            var settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            return SetValues(iniPath, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["Interface"] = ediabasInterface,
                 ["ObdComPort"] = comPort,
                 ["Port"] = comPort,
-            };
+            });
+        }
 
+        /// <summary>
+        /// Set the given key/value pairs in an EDIABAS.INI: existing keys are updated in place,
+        /// missing keys are appended. Returns false if the file does not exist.
+        /// </summary>
+        public static bool SetValues(string iniPath, IDictionary<string, string> settings)
+        {
+            if (string.IsNullOrEmpty(iniPath) || !File.Exists(iniPath))
+                return false;
+
+            string[] lines = File.ReadAllLines(iniPath);
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             for (int i = 0; i < lines.Length; i++)
