@@ -1,0 +1,19 @@
+# Windows batch files must use CRLF or cmd.exe may silently fail to run them.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# PowerShell tolerates LF, but keep it consistent on Windows checkouts.
+*.ps1 text eol=crlf
+
+# C# / project / config files: normalized text.
+*.cs   text
+*.csproj text
+*.json text
+*.md   text
+*.manifest text
+
+# The bundled EDIABAS runtime is proprietary binary; never alter it.
+*.dll  binary
+*.PRG  binary
+*.GRP  binary
+*.ico  binary
