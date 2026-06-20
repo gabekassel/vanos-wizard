@@ -59,7 +59,7 @@ Open `S54VanosTester.csproj`, then:
 
 ### Option C — Developer Command Prompt
 ```
-msbuild S54VanosTester.csproj /p:Configuration=Release /p:Platform=x86
+msbuild S54VanosTester.csproj /p:Configuration=Release
 ```
 
 > No Visual Studio? Install the free

@@ -88,6 +88,20 @@ namespace S54VanosTester.UI
             this.stopLiveButton = new Button();
             this.logBox = new TextBox();
 
+            // Suspend layout while the control tree is assembled. Several Fill-docked children
+            // (notably liveChart) are briefly squeezed to a non-positive size as their Top-docked
+            // siblings are added; the DataVisualization Chart throws ArgumentException on a
+            // non-positive height, so all layout is deferred until the form has its real ClientSize.
+            ((System.ComponentModel.ISupportInitialize)(this.vanosGrid)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.liveChart)).BeginInit();
+            this.menuStrip.SuspendLayout();
+            this.connectionBar.SuspendLayout();
+            this.vanosGroup.SuspendLayout();
+            this.liveGroup.SuspendLayout();
+            this.liveReadouts.SuspendLayout();
+            this.liveButtons.SuspendLayout();
+            this.SuspendLayout();
+
             // menuStrip
             this.aboutMenuItem.Text = "&About";
             this.aboutMenuItem.Click += this.aboutMenuItem_Click;
@@ -320,6 +334,19 @@ namespace S54VanosTester.UI
             this.Controls.Add(this.menuStrip);
             this.MainMenuStrip = this.menuStrip;
             this.Text = Branding.WindowTitle;
+
+            // Re-enable layout now that the tree is built and the form is sized. EndInit lets the
+            // Chart and grid validate their dimensions once, against the final (positive) size.
+            ((System.ComponentModel.ISupportInitialize)(this.liveChart)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.vanosGrid)).EndInit();
+            this.liveButtons.ResumeLayout(false);
+            this.liveReadouts.ResumeLayout(false);
+            this.liveGroup.ResumeLayout(false);
+            this.vanosGroup.ResumeLayout(false);
+            this.connectionBar.ResumeLayout(false);
+            this.menuStrip.ResumeLayout(false);
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
     }
 }

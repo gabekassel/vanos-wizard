@@ -67,7 +67,9 @@ Could not find MSBuild. Install Visual Studio 2019/2022 or the free
 Write-Host "Using MSBuild: $msbuild" -ForegroundColor Cyan
 Write-Host "Configuration: $Configuration" -ForegroundColor Cyan
 
-& $msbuild $project /t:Restore,Build /p:Configuration=$Configuration /p:Platform=x86 /v:minimal /nologo
+# PlatformTarget=x86 in the .csproj forces a 32-bit PE; the MSBuild Platform stays AnyCPU so the
+# output lands in bin\$Configuration\net48 (not bin\x86\...). Don't pass /p:Platform=x86 here.
+& $msbuild $project /t:Restore,Build /p:Configuration=$Configuration /v:minimal /nologo
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed (exit code $LASTEXITCODE)."
     exit $LASTEXITCODE

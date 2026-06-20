@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- EDIABAS api32.dll is a 32-bit native DLL, so the host process MUST be x86. -->
     <TargetFramework>net48</TargetFramework>
+    <!--
+      EDIABAS api32.dll is a 32-bit native DLL, so the host process MUST be 32-bit.
+      PlatformTarget=x86 forces a 32-bit PE while keeping the MSBuild Platform at the
+      default 'AnyCPU'. That keeps the output at bin\$(Configuration)\net48\ (the path the
+      build/run/publish scripts expect) instead of bin\x86\$(Configuration)\net48\.
+    -->
     <PlatformTarget>x86</PlatformTarget>
-    <Platforms>x86</Platforms>
     <UseWindowsForms>true</UseWindowsForms>
     <LangVersion>9.0</LangVersion>
     <Nullable>disable</Nullable>
