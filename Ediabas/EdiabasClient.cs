@@ -31,6 +31,10 @@ namespace S54VanosTester.Ediabas
         // every call takes this handle as its first argument (see EdiabasApi).
         private uint _handle;
 
+        // Upper bound on how long we wait for a single job to finish. VANOS actuation jobs take a
+        // few seconds; this just guards against a job that never leaves the BUSY state.
+        private static readonly TimeSpan JobTimeout = TimeSpan.FromSeconds(20);
+
         /// <summary>
         /// Initialise EDIABAS for the given interface and COM port. The COM port is also written
         /// to EDIABAS.INI by <see cref="EdiabasConfig"/> before this is called so it works on every
@@ -70,10 +74,15 @@ namespace S54VanosTester.Ediabas
             if (jobId == 0)
                 throw Error($"apiJob '{job}' could not be started");
 
-            // Wait for completion.
+            // Wait for completion, with a timeout so a stuck job can't hang the worker thread.
             int state;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             while ((state = EdiabasApi.apiState(_handle)) == EdiabasApi.APIBUSY)
+            {
+                if (sw.Elapsed > JobTimeout)
+                    throw Error($"Job '{job}' timed out");
                 Thread.Sleep(2);
+            }
 
             if (state == EdiabasApi.APIERROR)
                 throw Error($"Job '{job}' failed");
@@ -135,39 +144,19 @@ namespace S54VanosTester.Ediabas
 
         private EdiabasResultValue ReadValue(string name, ushort set)
         {
+            // Read every result as its EDIABAS-formatted text. This api32.dll reports unusual format
+            // codes (reals come back as 8, not the documented 6), and the formatted text already
+            // carries the SGBD's scaling and decimals, so the text form is both simpler and more
+            // reliable than typed reads. EdiabasResultValue.TryGetDouble parses it back to a number
+            // when a caller needs one.
             var value = new EdiabasResultValue { Name = name };
-
-            if (!EdiabasApi.apiResultFormat(_handle, out int format, name, set))
-            {
-                value.Format = EdiabasApi.APIFORMAT_TEXT;
-                value.Value = null;
-                return value;
-            }
-
+            EdiabasApi.apiResultFormat(_handle, out int format, name, set);
             value.Format = format;
 
-            switch (format)
-            {
-                case EdiabasApi.APIFORMAT_REAL:
-                    value.Value = EdiabasApi.apiResultReal(_handle, out double real, name, set) ? real : (object)null;
-                    break;
-
-                case EdiabasApi.APIFORMAT_CHAR:
-                case EdiabasApi.APIFORMAT_BYTE:
-                case EdiabasApi.APIFORMAT_INTEGER:
-                case EdiabasApi.APIFORMAT_WORD:
-                case EdiabasApi.APIFORMAT_LONG:
-                case EdiabasApi.APIFORMAT_DWORD:
-                    value.Value = EdiabasApi.apiResultInt(_handle, out int integer, name, set) ? integer : (object)null;
-                    break;
-
-                default: // TEXT / BINARY
-                    var buffer = new byte[1024];
-                    value.Value = EdiabasApi.apiResultText(_handle, buffer, name, set, string.Empty)
-                        ? BufferToString(buffer)
-                        : null;
-                    break;
-            }
+            var buffer = new byte[1024];
+            value.Value = EdiabasApi.apiResultText(_handle, buffer, name, set, string.Empty)
+                ? BufferToString(buffer)
+                : null;
 
             return value;
         }

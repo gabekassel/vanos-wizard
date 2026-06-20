@@ -32,18 +32,51 @@ namespace S54VanosTester.Diagnostics
         {
             var sample = new TemperatureSample { Time = DateTime.Now };
 
-            if (!_client.TryRunJob(_settings.Ecu, _settings.TemperatureJob, out List<EdiabasResultSet> sets))
+            // Per-sensor jobs take priority; fall back to the combined job for each that is unset.
+            string coolantJob = FirstNonEmpty(_settings.CoolantJob, _settings.TemperatureJob);
+            string oilJob = FirstNonEmpty(_settings.OilJob, _settings.TemperatureJob);
+
+            if (!string.IsNullOrEmpty(coolantJob) &&
+                string.Equals(coolantJob, oilJob, StringComparison.OrdinalIgnoreCase))
+            {
+                // A single job returns both temperatures.
+                if (_client.TryRunJob(_settings.Ecu, coolantJob, out List<EdiabasResultSet> sets))
+                {
+                    foreach (EdiabasResultSet set in sets)
+                    {
+                        if (!sample.CoolantC.HasValue)
+                            sample.CoolantC = set.GetDouble(_settings.CoolantResult);
+                        if (!sample.OilC.HasValue)
+                            sample.OilC = set.GetDouble(_settings.OilResult);
+                    }
+                }
                 return sample;
+            }
+
+            // Separate job per sensor (e.g. mss54ds0).
+            sample.CoolantC = ReadValue(coolantJob, _settings.CoolantResult);
+            sample.OilC = ReadValue(oilJob, _settings.OilResult);
+            return sample;
+        }
+
+        /// <summary>Run a single job and pull one numeric result from any of its result sets.</summary>
+        private double? ReadValue(string job, string resultName)
+        {
+            if (string.IsNullOrEmpty(job) || string.IsNullOrEmpty(resultName))
+                return null;
+            if (!_client.TryRunJob(_settings.Ecu, job, out List<EdiabasResultSet> sets))
+                return null;
 
             foreach (EdiabasResultSet set in sets)
             {
-                if (!sample.CoolantC.HasValue)
-                    sample.CoolantC = set.GetDouble(_settings.CoolantResult);
-                if (!sample.OilC.HasValue)
-                    sample.OilC = set.GetDouble(_settings.OilResult);
+                double? value = set.GetDouble(resultName);
+                if (value.HasValue)
+                    return value;
             }
-
-            return sample;
+            return null;
         }
+
+        private static string FirstNonEmpty(string a, string b)
+            => !string.IsNullOrEmpty(a) ? a : b;
     }
 }

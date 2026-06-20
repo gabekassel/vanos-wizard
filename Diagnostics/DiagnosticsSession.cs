@@ -138,7 +138,7 @@ namespace S54VanosTester.Diagnostics
             if (reachable)
             {
                 _temperatureReader = new TemperatureReader(_client, _settings);
-                _vanosTester = new VanosTester(_client, _settings);
+                _vanosTester = new VanosTester(_client, _settings, OnLog);
             }
 
             return reachable;

@@ -20,14 +20,17 @@ namespace S54VanosTester
         public string IdentJob { get; set; } = "IDENT";
 
         // --- VANOS test ---
-        // The job that performs the VANOS function/adjustment test.
-        public string VanosTestJob { get; set; } = "STEUERN_VANOS_TEST";
-        public string VanosTestParameters { get; set; } = "";
-        // Optional status job to read the VANOS adjustment values after the test.
-        public string VanosStatusJob { get; set; } = "STATUS_VANOS";
+        // The VANOS function test is a fixed actuation sequence (raise idle, drive the intake/exhaust
+        // cams to their end stops, run the leak and adjustment-time tests) implemented in VanosTester
+        // against the mss54ds0 SGBD, so the job/result names live in code rather than here.
 
         // --- Live temperatures ---
+        // Some SGBDs return coolant + oil from a single job; others (e.g. mss54ds0) expose a
+        // separate status job per sensor. CoolantJob/OilJob take priority when set; if left empty
+        // the reader falls back to running TemperatureJob once and reading both results from it.
         public string TemperatureJob { get; set; } = "STATUS_TEMPERATUR";
+        public string CoolantJob { get; set; } = "";
+        public string OilJob { get; set; } = "";
         public string CoolantResult { get; set; } = "STAT_KUEHLMITTELTEMPERATUR_WERT";
         public string OilResult { get; set; } = "STAT_OELTEMPERATUR_WERT";
 
